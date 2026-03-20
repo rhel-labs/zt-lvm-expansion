@@ -1,0 +1,129 @@
+= LVM Expansion Troubleshooting Lab
+
+This lab teaches systematic troubleshooting and LVM expansion through a real-world scenario where a filesystem has run out of space but has additional capacity available on the underlying disk.
+
+== Lab Overview
+
+Students will work through a disk space emergency at a fictitious company (Super-Business) where a manager created a filesystem that's too small. The lab follows a methodical troubleshooting approach: diagnosis, analysis, and resolution.
+
+=== Learning Objectives
+
+* Diagnose disk space issues using `df`, `du`, and LVM commands
+* Understand LVM architecture (physical volumes, volume groups, logical volumes)
+* Safely extend logical volumes and grow filesystems
+* Follow systematic troubleshooting methodology
+* Differentiate between logical volume extension and filesystem growth
+
+=== Lab Structure
+
+The lab consists of four modules:
+
+. **Introduction** - Presents the scenario through emails from "Manager Scott" and guidance from "Sysadmin Nate"
+. **Diagnosis** - Students investigate the current state using diagnostic commands
+. **Analysis** - Students plan the expansion by understanding LVM structure and available resources
+. **Resolution** - Students execute the LVM and filesystem expansion
+
+=== Technical Details
+
+**Infrastructure:**
+
+* 1 RHEL 10 VM with 4GB RAM
+* Primary disk (40GB) for OS
+* Secondary disk (5GB) for application data
+
+**Initial State:**
+
+* Secondary disk (`/dev/vdb`) configured with LVM
+* Volume group `app_vg` created on full 5GB disk
+* Logical volume `app_lv` sized at only 1GB
+* XFS filesystem mounted at `/app`
+* Filesystem filled to ~96% capacity
+* ~4GB of free space available in volume group
+
+**Solution:**
+
+Students will extend the logical volume to use all available VG space and grow the XFS filesystem to match.
+
+== Directory Structure
+
+.tree output
+[source,shell]
+----
+zt-lvm-expansion/
+├── README.adoc                    # This file
+├── config/
+│   ├── instances.yaml            # VM with 5GB secondary disk
+│   ├── networks.yaml             # Network configuration
+│   └── firewall.yaml             # Firewall rules
+├── content/
+│   ├── antora.yml
+│   └── modules/ROOT/
+│       ├── assets/images/
+│       │   └── example-image.png
+│       └── pages/
+│           ├── module-01.adoc    # Introduction
+│           ├── module-02.adoc    # Diagnosis
+│           ├── module-03.adoc    # Analysis
+│           └── module-04.adoc    # Resolution
+├── setup-automation/
+│   ├── setup-rhel.sh             # Creates LVM structure and fills disk
+│   ├── ansible.cfg
+│   └── main.yml
+├── runtime-automation/
+│   ├── module-01/
+│   │   └── setup-rhel.sh         # Creates Nate's notes file
+│   ├── module-02/
+│   │   └── setup-rhel.sh
+│   ├── module-03/
+│   │   └── setup-rhel.sh
+│   ├── module-04/
+│   │   ├── setup-rhel.sh
+│   │   ├── solve-rhel.sh         # Performs LVM expansion
+│   │   └── validation-rhel.sh   # Validates successful expansion
+│   ├── ansible.cfg
+│   ├── inventory
+│   └── main.yml
+├── site.yml                       # Antora site configuration
+├── ui-config.yml                  # UI and module configuration
+└── utilities/                     # Helper scripts for local development
+    ├── lab-build
+    ├── lab-clean
+    ├── lab-serve
+    └── lab-stop
+----
+
+== Key Concepts Covered
+
+* **Filesystem vs Logical Volume**: Understanding the difference and why both must be resized
+* **LVM Components**: Physical volumes (PV), volume groups (VG), and logical volumes (LV)
+* **Diagnostic Tools**: `df`, `du`, `pvdisplay`, `vgdisplay`, `lvdisplay`
+* **LVM Commands**: `lvextend` with percentage-based sizing
+* **Filesystem Growth**: `xfs_growfs` for online XFS expansion
+* **Troubleshooting Methodology**: Systematic approach to problem-solving
+
+== Pedagogical Approach
+
+The lab uses fictional personas to add engagement and realism:
+
+* **Manager Scott**: A well-meaning but technically rusty manager who creates the problem
+* **Sysadmin Nate**: An experienced mentor who provides helpful guidance
+
+This approach makes the scenario more engaging while teaching both technical skills and professional communication.
+
+== Development Cycle
+
+. Edit content in `content/modules/ROOT/pages/`
+. Test locally using `utilities/lab-build` and `utilities/lab-serve`
+. Use git to branch and commit your work
+. Push to repository with appropriate tags
+
+== Prerequisites
+
+Students should have basic familiarity with:
+
+* Linux command line navigation
+* Basic filesystem concepts
+* Sudo/privilege escalation
+* Reading command output
+
+No prior LVM experience is required - the lab teaches LVM concepts as needed.

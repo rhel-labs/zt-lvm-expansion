@@ -1,0 +1,152 @@
+= Diagnosis: Understanding the Problem
+
+== Initial Assessment
+
+As any good systems administrator knows, the first step in troubleshooting is to gather information. Let's verify Manager Scott's claim that the disk is full.
+
+[source,bash,role=execute]
+----
+df -h /app
+----
+
+You should see output similar to this:
+
+----
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/app_vg-app_lv  1014M  964M   51M  96% /app
+----
+
+[NOTE]
+====
+The filesystem is indeed nearly full at 96% capacity. Notice that the total size is only about 1GB (1014M), which confirms what Nate mentioned - Scott only created a 1GB filesystem despite having a 5GB disk available.
+====
+
+== Understanding Filesystem Usage
+
+Let's see what's taking up all that space.
+
+[source,bash,role=execute]
+----
+du -sh /app/*
+----
+
+This shows you the disk usage of each directory under `/app`:
+
+----
+951M    /app/data
+8.0K    /app/config
+4.0K    /app/logs
+----
+
+The `/app/data` directory is using most of the space. This is typical for applications - data grows over time. This is exactly why Nate warned about sizing filesystems with growth in mind!
+
+[TIP]
+====
+The `df` command shows filesystem-level information (total size, used space, available space).
+
+The `du` command shows actual disk usage by directory or file.
+
+Both are essential tools for diagnosing disk space issues.
+====
+
+== Examining the LVM Structure
+
+Now let's look at the Logical Volume Manager (LVM) structure. LVM provides flexibility by allowing us to resize volumes without reformatting.
+
+First, let's check the physical volumes:
+
+[source,bash,role=execute]
+----
+sudo pvdisplay
+----
+
+You should see information about the physical volume on `/dev/vdb`. This shows the entire 5GB disk has been initialized as an LVM physical volume.
+
+Next, check the volume group:
+
+[source,bash,role=execute]
+----
+sudo vgdisplay app_vg
+----
+
+Look for these key fields:
+
+* **VG Size**: Should show approximately 5GB (the full disk)
+* **Alloc PE / Size**: Shows how much is currently allocated (about 1GB)
+* **Free PE / Size**: Shows available space (about 4GB)
+
+[IMPORTANT]
+====
+This is the key finding: The volume group has approximately **4GB of free space** that isn't being used!
+
+Scott created the physical volume and volume group correctly with the full 5GB disk. He just forgot to allocate all of it when creating the logical volume.
+====
+
+Now let's look at the logical volume:
+
+[source,bash,role=execute]
+----
+sudo lvdisplay /dev/app_vg/app_lv
+----
+
+You'll see the logical volume is only 1GB in size, even though the volume group has 5GB available.
+
+== Understanding the Situation
+
+Let's create a visual summary of what we've discovered:
+
+[source,bash,role=execute]
+----
+echo "=== Disk Space Analysis ==="
+echo ""
+echo "Physical Disk (/dev/vdb):     5GB"
+echo "Volume Group (app_vg):        5GB total"
+echo "  ├─ Allocated to app_lv:     1GB"
+echo "  └─ Free space:              ~4GB"
+echo ""
+echo "Filesystem (/app):            1GB (96% full)"
+echo ""
+echo "Conclusion: We have 4GB of unused space in the volume group!"
+----
+
+== Nate's Notes
+
+Remember Nate mentioned he left some notes? Let's check them:
+
+[source,bash,role=execute]
+----
+cat /home/nate/lvm-notes.txt
+----
+
+[NOTE]
+====
+*Nate's LVM Expansion Quick Reference*
+
+When you need to expand an LVM-based filesystem, follow these steps in order:
+
+1. **Check available space**: `vgdisplay` to see if your VG has free space
+2. **Extend the logical volume**: `lvextend -l +100%FREE /dev/vg_name/lv_name`
+3. **Grow the filesystem**:
+   - For XFS: `xfs_growfs /mount_point`
+   - For ext4: `resize2fs /dev/vg_name/lv_name`
+
+Remember: You can extend XFS filesystems while they're mounted!
+
+Common mistakes to avoid:
+- Don't forget to grow the filesystem after extending the LV
+- Make sure you have free space in the VG before extending
+- Use the correct filesystem resize command (xfs_growfs vs resize2fs)
+
+-Nate
+====
+
+== Diagnosis Summary
+
+You've now completed the diagnostic phase and confirmed:
+
+1. The `/app` filesystem is 96% full with only 1GB total capacity
+2. The underlying volume group (`app_vg`) has approximately 4GB of free space
+3. The physical disk (`/dev/vdb`) is 5GB and fully utilized by the volume group
+4. We can solve this by extending the logical volume and then growing the filesystem
+
+Now that we understand the situation, let's move on to the analysis phase where we'll plan our expansion strategy.

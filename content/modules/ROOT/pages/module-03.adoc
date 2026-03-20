@@ -1,0 +1,194 @@
+= Analysis: Planning the Expansion
+
+== Understanding LVM Architecture
+
+Before we make any changes, let's make sure we understand how LVM works and what we're about to do.
+
+LVM (Logical Volume Manager) adds a layer of abstraction between physical disks and filesystems:
+
+----
+Physical Disk (/dev/vdb)
+    ↓
+Physical Volume (PV)
+    ↓
+Volume Group (VG) - app_vg
+    ↓
+Logical Volume (LV) - app_lv
+    ↓
+Filesystem (XFS) - mounted on /app
+----
+
+[NOTE]
+====
+Think of it like a building:
+
+* **Physical Disk** = The land/plot
+* **Physical Volume** = The foundation
+* **Volume Group** = The building structure
+* **Logical Volume** = Individual rooms/apartments
+* **Filesystem** = The interior finish and usable space
+
+Right now, we have a building (VG) on a large plot of land, but we've only finished one small room (LV) in it. We have space to expand that room to use more of the building.
+====
+
+== Verifying Available Resources
+
+Let's double-check exactly how much free space we have available:
+
+[source,bash,role=execute]
+----
+sudo vgs app_vg
+----
+
+Look at the **VFree** column - this shows the free space available in the volume group. You should see approximately 4GB free.
+
+Let's also check the current logical volume size:
+
+[source,bash,role=execute]
+----
+sudo lvs app_vg/app_lv
+----
+
+The **LSize** column shows it's currently 1GB.
+
+== Checking the Filesystem Type
+
+It's important to know what filesystem type we're working with because different filesystems use different resize commands:
+
+[source,bash,role=execute]
+----
+df -T /app
+----
+
+You should see that `/app` is formatted with **xfs**. This is good news because XFS can be grown while mounted (no downtime needed)!
+
+[TIP]
+====
+**Filesystem Resize Commands:**
+
+* **XFS**: `xfs_growfs /mountpoint` (can be done online while mounted)
+* **ext4**: `resize2fs /dev/vg/lv` (can also be done online)
+* **ext3**: `resize2fs /dev/vg/lv` (can be done online)
+
+XFS filesystems **cannot be shrunk**, only grown. This is actually fine for most production scenarios where you're adding space, not removing it.
+====
+
+== Planning the Expansion
+
+Our plan is straightforward:
+
+**Step 1**: Extend the logical volume to use all available space in the volume group
+
+**Step 2**: Grow the XFS filesystem to use the newly available space in the logical volume
+
+Let's verify this plan will work by checking there are no issues:
+
+[source,bash,role=execute]
+----
+sudo lvdisplay /dev/app_vg/app_lv | grep "LV Status"
+----
+
+The status should show "available" - this means the logical volume is healthy and can be extended.
+
+[source,bash,role=execute]
+----
+mount | grep /app
+----
+
+This confirms `/app` is mounted. Since we're using XFS, we can grow it while it's mounted.
+
+== Pre-Change Documentation
+
+Before making any changes to production systems, it's always wise to document the current state. Let's create a "before" snapshot:
+
+[source,bash,role=execute]
+----
+echo "=== Pre-Expansion State ===" > /tmp/expansion-log.txt
+echo "" >> /tmp/expansion-log.txt
+echo "Date: $(date)" >> /tmp/expansion-log.txt
+echo "" >> /tmp/expansion-log.txt
+echo "Filesystem Status:" >> /tmp/expansion-log.txt
+df -h /app >> /tmp/expansion-log.txt
+echo "" >> /tmp/expansion-log.txt
+echo "Volume Group Status:" >> /tmp/expansion-log.txt
+sudo vgdisplay app_vg >> /tmp/expansion-log.txt
+echo "" >> /tmp/expansion-log.txt
+echo "Logical Volume Status:" >> /tmp/expansion-log.txt
+sudo lvdisplay /dev/app_vg/app_lv >> /tmp/expansion-log.txt
+----
+
+Let's review what we captured:
+
+[source,bash,role=execute]
+----
+cat /tmp/expansion-log.txt
+----
+
+[IMPORTANT]
+====
+In production environments, always document the state before making changes. This gives you a baseline to compare against and helps with troubleshooting if something unexpected happens.
+
+In critical systems, you might also want to:
+
+* Create a backup of important data
+* Take a snapshot (if using LVM snapshots)
+* Notify relevant stakeholders
+* Schedule a maintenance window
+====
+
+== Risk Assessment
+
+Let's assess the risks of our planned change:
+
+**Low Risk Factors:**
+
+* We're only growing the volume, not shrinking it
+* XFS supports online growth (no downtime)
+* We have plenty of free space in the volume group
+* The logical volume is healthy and available
+
+**What Could Go Wrong:**
+
+* Running the wrong command could be destructive
+* Not growing the filesystem after extending the LV would waste the space
+* Typos in volume group or logical volume names could affect wrong volumes
+
+**Mitigation:**
+
+* Double-check all commands before running them
+* Follow the procedure step-by-step
+* Verify each step completed successfully before proceeding
+
+== Expansion Strategy
+
+Based on our analysis, here's our strategy:
+
+[source,bash]
+----
+# Step 1: Extend the logical volume to use 100% of free space
+sudo lvextend -l +100%FREE /dev/app_vg/app_lv
+
+# Step 2: Grow the XFS filesystem to fill the logical volume
+sudo xfs_growfs /app
+----
+
+[NOTE]
+====
+**Why these commands?**
+
+* `lvextend -l +100%FREE` extends the logical volume using all available free space in the volume group
+* `xfs_growfs /app` grows the XFS filesystem to use all available space in the logical volume (we specify the mount point, not the device)
+====
+
+== Ready to Proceed
+
+We've completed our analysis and have a clear plan:
+
+✓ Confirmed we have ~4GB free space in the volume group +
+✓ Verified the logical volume is healthy +
+✓ Identified the filesystem type (XFS) +
+✓ Selected the appropriate commands +
+✓ Documented the current state +
+✓ Assessed the risks
+
+Now we're ready to execute the expansion. Let's move on to the resolution phase where we'll implement these changes!

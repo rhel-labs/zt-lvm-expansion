@@ -1,0 +1,90 @@
+= Welcome to Super-Business
+
+== The Situation
+
+Welcome to your new role as a systems administrator at Super-Business! As you settle in on your first day, you notice an urgent email in your inbox.
+
+[quote, Manager Scott]
+____
+Subject: URGENT - Application Server Issue
+
+Team,
+
+I've been monitoring our server resources and noticed we were using a lot of disk space on the application server. To optimize our infrastructure, I provisioned a dedicated 5GB disk for our SuperBusinessApp and moved everything over to keep things organized.
+
+The application is now running on `/app` and everything is working great! I made sure to size it appropriately for our current needs - no wasted space!
+
+Let me know if you have any questions about my optimization work.
+
+-Scott
+____
+
+You check the timestamp - that email was sent two weeks ago. Before you can even think about it, another email arrives.
+
+[quote, Manager Scott]
+____
+Subject: RE: URGENT - Application Server Issue - CRITICAL UPDATE
+
+Team,
+
+The application has stopped working! It keeps saying "No space left on device" but that doesn't make sense because I just set this up with a brand new 5GB disk. The application can't possibly be using that much space already.
+
+I need this fixed IMMEDIATELY. Our super-businessey business processes are being impacted!
+
+-Scott
+____
+
+You sigh and check your other email. There's a message from Nate, the senior sysadmin.
+
+[NOTE]
+====
+*From: Nate (Senior Sysadmin)*
+
+Hey,
+
+Welcome to the team! Sorry you're jumping right into the deep end on your first day.
+
+I see Scott's been at it again. For context: two weeks ago he decided our application needed its own disk for "better organization." He created a 1GB filesystem because "that's all the app is using right now, why waste space?"
+
+Of course, I tried to explain that applications grow and we should provision with headroom, but... well, you've read his emails.
+
+The good news: Scott actually did provision a 5GB disk like he said. He just only created a 1GB filesystem on it and left the rest unused. Classic Scott move - bought a 5-bedroom house but only built 1 bedroom.
+
+This should be a straightforward fix. The disk has plenty of space available - we just need to expand the logical volume and filesystem to use it. Think of it as finishing the construction on those other 4 bedrooms.
+
+I've left some notes in my home directory that might help you out. See `/home/nate/lvm-notes.txt` for some reminders about the LVM expansion process.
+
+Take your time, work methodically, and you'll have this sorted in no time. Scott's emails may be frantic, but there's no actual emergency - the app is just out of disk space, not broken.
+
+-Nate
+
+P.S. - Welcome to Super-Business. It's never boring around here.
+====
+
+== Your Mission
+
+Your task is to investigate and resolve this disk space issue. You'll need to:
+
+1. **Diagnose** the current state of the filesystem and LVM structure
+2. **Analyze** the available resources and plan your expansion approach
+3. **Resolve** the issue by expanding the logical volume and filesystem
+
+This is a great learning opportunity to practice LVM expansion in a safe environment. The application isn't actually critical (despite what Scott says), so you can take your time and learn the proper procedure.
+
+[TIP]
+====
+In the real world, running out of disk space on production systems is a common issue. Knowing how to safely expand LVM volumes is an essential skill for any systems administrator.
+
+This lab will walk you through the systematic approach: diagnose first, understand what you have, plan your changes, then execute carefully.
+====
+
+== Getting Started
+
+Let's begin by examining the system and understanding the current state. Click the **Terminal** tab and let's start our investigation!
+
+[source,bash,role=execute]
+----
+ls -la /app
+----
+
+You should see the application directory structure. Now let's move on to the diagnosis phase where we'll examine the disk space situation in detail.

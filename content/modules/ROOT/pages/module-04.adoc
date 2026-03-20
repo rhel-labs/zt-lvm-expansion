@@ -1,0 +1,271 @@
+= Resolution: Expanding the Filesystem
+
+== Step 1: Extend the Logical Volume
+
+Now it's time to execute our plan. First, let's extend the logical volume to use all the free space in the volume group.
+
+[source,bash,role=execute]
+----
+sudo lvextend -l +100%FREE /dev/app_vg/app_lv
+----
+
+You should see output similar to:
+
+----
+Size of logical volume app_vg/app_lv changed from 1.00 GiB to 5.00 GiB.
+Logical volume app_vg/app_lv successfully resized.
+----
+
+[NOTE]
+====
+**What just happened?**
+
+We extended the logical volume from 1GB to 5GB by using all the free space in the volume group.
+
+The `-l +100%FREE` option means "add 100% of the free extents to this logical volume." This is safer than specifying a size because it automatically uses whatever is actually available.
+====
+
+Let's verify the logical volume is now 5GB:
+
+[source,bash,role=execute]
+----
+sudo lvs app_vg/app_lv
+----
+
+You should see the **LSize** is now approximately 5.00g.
+
+== Important: The Filesystem Still Needs to Grow
+
+Here's a critical point that catches many people: **extending the logical volume does NOT automatically resize the filesystem!**
+
+Let's check the filesystem size:
+
+[source,bash,role=execute]
+----
+df -h /app
+----
+
+Notice the filesystem is still showing as ~1GB! The filesystem doesn't know about the extra space in the logical volume yet.
+
+[IMPORTANT]
+====
+**Common Mistake Alert!**
+
+Many administrators extend the logical volume and then wonder why they still don't have more space. The logical volume is like adding more land to your property - but you still need to expand the house (filesystem) to use that new land.
+
+Always remember: After extending an LV, you must also grow the filesystem!
+====
+
+== Step 2: Grow the Filesystem
+
+Now let's grow the XFS filesystem to use the full 5GB available in the logical volume:
+
+[source,bash,role=execute]
+----
+sudo xfs_growfs /app
+----
+
+You should see output showing the filesystem being expanded:
+
+----
+meta-data=/dev/mapper/app_vg-app_lv isize=512    agcount=4, agsize=65536 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1, rmapbt=0
+         =                       reflink=1
+data     =                       bsize=4096   blocks=262144, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
+log      =internal log           bsize=4096   blocks=2560, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+data blocks changed from 262144 to 1310720
+----
+
+[NOTE]
+====
+The key line is the last one: **"data blocks changed from 262144 to 1310720"**
+
+This shows the filesystem has grown to use the additional space. The exact numbers may vary, but you should see a significant increase.
+====
+
+== Step 3: Verify the Expansion
+
+Let's verify that our expansion worked correctly:
+
+[source,bash,role=execute]
+----
+df -h /app
+----
+
+You should now see approximately 5GB total space:
+
+----
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/app_vg-app_lv   5.0G  964M  4.1G  20% /app
+----
+
+[TIP]
+====
+**Success!**
+
+Look at that difference:
+
+* **Before**: 1.0GB total, 964MB used, 51MB free (96% full)
+* **After**: 5.0GB total, 964MB used, 4.1GB free (20% full)
+
+Same data, same usage - but now we have plenty of room for growth!
+====
+
+Let's also verify the LVM structure is as expected:
+
+[source,bash,role=execute]
+----
+sudo vgs app_vg
+----
+
+The **VFree** column should now show very little free space (maybe a few MB), because we allocated it all to the logical volume.
+
+[source,bash,role=execute]
+----
+sudo lvs app_vg/app_lv
+----
+
+This should confirm the logical volume is now approximately 5GB.
+
+== Post-Change Documentation
+
+Let's document the final state to compare with our "before" snapshot:
+
+[source,bash,role=execute]
+----
+echo "" >> /tmp/expansion-log.txt
+echo "=== Post-Expansion State ===" >> /tmp/expansion-log.txt
+echo "" >> /tmp/expansion-log.txt
+echo "Date: $(date)" >> /tmp/expansion-log.txt
+echo "" >> /tmp/expansion-log.txt
+echo "Filesystem Status:" >> /tmp/expansion-log.txt
+df -h /app >> /tmp/expansion-log.txt
+echo "" >> /tmp/expansion-log.txt
+echo "Volume Group Status:" >> /tmp/expansion-log.txt
+sudo vgdisplay app_vg >> /tmp/expansion-log.txt
+echo "" >> /tmp/expansion-log.txt
+echo "Logical Volume Status:" >> /tmp/expansion-log.txt
+sudo lvdisplay /dev/app_vg/app_lv >> /tmp/expansion-log.txt
+----
+
+Review the complete before and after:
+
+[source,bash,role=execute]
+----
+cat /tmp/expansion-log.txt
+----
+
+== Testing the Application
+
+Let's verify the application can now write to the filesystem:
+
+[source,bash,role=execute]
+----
+echo "$(date) - Filesystem expanded successfully" >> /app/logs/app.log
+----
+
+Check that it worked:
+
+[source,bash,role=execute]
+----
+tail -3 /app/logs/app.log
+----
+
+Perfect! The application can write again.
+
+== Informing Manager Scott
+
+Now you can send Scott an update. Here's a professional way to communicate what you fixed:
+
+[quote, Your Email to Manager Scott]
+____
+Subject: RE: Application Server Issue - RESOLVED
+
+Scott,
+
+The disk space issue has been resolved. The application filesystem has been expanded from 1GB to 5GB and is now operating normally at 20% capacity with approximately 4GB of free space available for future growth.
+
+**Summary of changes:**
+
+* Extended logical volume app_lv from 1GB to 5GB using available space in volume group
+* Grew XFS filesystem to utilize the expanded logical volume
+* Verified application can successfully write to the filesystem
+
+The 5GB disk you provisioned is now fully utilized. For future reference, when creating LVM-based filesystems, it's best to allocate space with growth projections in mind to avoid running out of space as applications scale.
+
+The application is running normally and has room to grow. Let me know if you need anything else.
+____
+
+[NOTE]
+====
+*From: Nate (Senior Sysadmin)*
+
+Nice work! You handled that methodically and professionally.
+
+A few things you did well:
+
+1. **Diagnosed before acting** - You understood the problem before jumping to solutions
+2. **Documented the state** - Before and after snapshots are invaluable
+3. **Verified each step** - You checked that each command worked before proceeding
+4. **Communicated clearly** - Your email to Scott was factual without being condescending
+
+That's exactly how you handle these situations in production. Welcome to the team!
+
+-Nate
+
+P.S. - Don't worry, Scott will do something like this again in about two weeks. At least you know the procedure now!
+====
+
+== Key Takeaways
+
+You've successfully resolved a disk space issue by expanding an LVM-based filesystem. Here are the key lessons:
+
+**LVM Expansion Process:**
+
+1. Diagnose the current state (`df`, `pvs`, `vgs`, `lvs`)
+2. Verify available space in the volume group
+3. Extend the logical volume (`lvextend`)
+4. Grow the filesystem (`xfs_growfs` or `resize2fs`)
+5. Verify the expansion succeeded
+
+**Best Practices:**
+
+* Always document the state before making changes
+* Understand your filesystem type (XFS vs ext4 have different tools)
+* Remember: extending LV ≠ growing filesystem - you must do both!
+* Provision storage with growth in mind
+* Work methodically and verify each step
+
+**Real-World Application:**
+
+This is one of the most common tasks in systems administration. Applications grow, data accumulates, and filesystems need to expand. Knowing how to do this safely and correctly is an essential skill.
+
+[TIP]
+====
+**Going Further:**
+
+In this lab we had a simple scenario with one disk and plenty of free space. In production you might encounter:
+
+* Adding additional physical disks to a volume group (`vgextend`)
+* Expanding volumes across multiple disks
+* Using LVM snapshots for backups
+* Monitoring disk usage to prevent emergencies (`df`, `du`, monitoring tools)
+
+Consider these as areas to explore for more advanced LVM management skills!
+====
+
+== Congratulations!
+
+You've completed the LVM expansion troubleshooting lab. You've learned how to:
+
+* Diagnose disk space issues systematically
+* Understand LVM architecture and components
+* Plan and execute safe filesystem expansions
+* Verify your changes and document your work
+
+These skills will serve you well in managing Linux systems in the real world!
