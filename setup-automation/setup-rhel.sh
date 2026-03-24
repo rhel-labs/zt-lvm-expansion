@@ -89,3 +89,6 @@ echo "Filesystem /app is now critically full" >> /tmp/progress.log
 df -h /app >> /tmp/progress.log
 
 echo "Lab setup complete - /app filesystem is full and ready for troubleshooting" >> /tmp/progress.log
+
+useradd nate
+groupmems -g wheel -a nate
