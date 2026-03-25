@@ -4,25 +4,26 @@
 
 Welcome to your new role as a systems administrator at Super-Business! As you settle in on your first day, you notice an urgent email in your inbox.
 
-[quote, Manager Scott]
+[NOTE]
 ____
+*From: Scott*
 Subject: URGENT - Application Server Issue
 
 Team,
 
-I've been monitoring our server resources and noticed we were using a lot of disk space on the application server. To optimize our infrastructure, I provisioned a dedicated 5GB disk for our SuperBusinessApp and moved everything over to keep things organized.
+I've been monitoring our server resources and noticed we were using a lot of disk space on the application server. To optimize our infrastructure, and maximize synergy, I provisioned a dedicated 5GB disk for our SuperBusinessApp and moved everything over to keep things organized.
 
 The application is now running on `/app` and everything is working great! I made sure to size it appropriately for our current needs - no wasted space!
 
 Let me know if you have any questions about my optimization work.
 
--Scott
 ____
 
 You check the timestamp - that email was sent two weeks ago. Before you can even think about it, another email arrives.
 
-[quote, Manager Scott]
+[NOTE]
 ____
+*From: Scott*
 Subject: RE: URGENT - Application Server Issue - CRITICAL UPDATE
 
 Team,
@@ -38,7 +39,8 @@ You sigh and check your other email. There's a message from Nate, the senior sys
 
 [NOTE]
 ====
-*From: Nate (Senior Sysadmin)*
+*From: Nate*
+Subject: Welcome aboard!
 
 Hey,
 
