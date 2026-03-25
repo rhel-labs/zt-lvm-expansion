@@ -7,6 +7,7 @@ Welcome to your new role as a systems administrator at Super-Business! As you se
 [NOTE]
 ____
 *From: Scott*
+
 Subject: URGENT - Application Server Issue
 
 Team,
@@ -24,6 +25,7 @@ You check the timestamp - that email was sent two weeks ago. Before you can even
 [NOTE]
 ____
 *From: Scott*
+
 Subject: RE: URGENT - Application Server Issue - CRITICAL UPDATE
 
 Team,
@@ -40,6 +42,7 @@ You sigh and check your other email. There's a message from Nate, the senior sys
 [NOTE]
 ====
 *From: Nate*
+
 Subject: Welcome aboard!
 
 Hey,

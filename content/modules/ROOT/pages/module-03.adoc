@@ -99,7 +99,7 @@ This confirms `/app` is mounted. Since we're using XFS, we can grow it while it'
 
 == Pre-Change Documentation
 
-Before making any changes to production systems, it's always wise to document the current state. Let's create a "before" snapshot:
+Before making any changes to production systems, it's always wise to document the current state. Let's create some "before" notes:
 
 [source,bash,role=execute]
 ----
@@ -163,7 +163,6 @@ Let's assess the risks of our planned change:
 
 Based on our analysis, here's our strategy:
 
-[source,bash]
 ----
 # Step 1: Extend the logical volume to use 100% of free space
 sudo lvextend -l +100%FREE /dev/app_vg/app_lv

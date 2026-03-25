@@ -18,7 +18,7 @@ Filesystem                  Size  Used Avail Use% Mounted on
 
 [NOTE]
 ====
-The filesystem is indeed nearly full at 96% capacity. Notice that the total size is only about 1GB (1014M), which confirms what Nate mentioned - Scott only created a 1GB filesystem despite having a 5GB disk available.
+Your actual output may vary, but in the example you can see, the filesystem is indeed nearly full at 96% capacity. Notice that the total size is only about 1GB (1014M), which confirms what Nate mentioned - Scott only created a 1GB filesystem despite having a 5GB disk available.
 ====
 
 == Understanding Filesystem Usage
@@ -95,18 +95,18 @@ You'll see the logical volume is only 1GB in size, even though the volume group 
 
 Let's create a visual summary of what we've discovered:
 
-[source,bash,role=execute]
+[NOTE]
 ----
-echo "=== Disk Space Analysis ==="
-echo ""
-echo "Physical Disk (/dev/vdb):     5GB"
-echo "Volume Group (app_vg):        5GB total"
-echo "  ├─ Allocated to app_lv:     1GB"
-echo "  └─ Free space:              ~4GB"
-echo ""
-echo "Filesystem (/app):            1GB (96% full)"
-echo ""
-echo "Conclusion: We have 4GB of unused space in the volume group!"
+=== Disk Space Analysis ==="
+
+Physical Disk (/dev/vdb):     5GB
+Volume Group (app_vg):        5GB total
+  ├─ Allocated to app_lv:     1GB
+  └─ Free space:              ~4GB
+
+Filesystem (/app):            1GB (96% full)
+
+Conclusion: We have 4GB of unused space in the volume group!
 ----
 
 == Nate's Notes
@@ -115,7 +115,7 @@ Remember Nate mentioned he left some notes? Let's check them:
 
 [source,bash,role=execute]
 ----
-cat /home/nate/lvm-notes.txt
+sudo cat /home/nate/lvm-notes.txt
 ----
 
 [NOTE]

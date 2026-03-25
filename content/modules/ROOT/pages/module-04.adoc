@@ -162,44 +162,8 @@ cat /tmp/expansion-log.txt
 
 == Testing the Application
 
-Let's verify the application can now write to the filesystem:
+At this point you would want to verify that your application is able to write to the disk that you've expanded.  You have have stopped the application, or it may have crashed on its own due to the disk space issue.  What to do at this point would depend on your application, and is outside of the scope of this lab.
 
-[source,bash,role=execute]
-----
-echo "$(date) - Filesystem expanded successfully" >> /app/logs/app.log
-----
-
-Check that it worked:
-
-[source,bash,role=execute]
-----
-tail -3 /app/logs/app.log
-----
-
-Perfect! The application can write again.
-
-== Informing Manager Scott
-
-Now you can send Scott an update. Here's a professional way to communicate what you fixed:
-
-[quote, Your Email to Manager Scott]
-____
-Subject: RE: Application Server Issue - RESOLVED
-
-Scott,
-
-The disk space issue has been resolved. The application filesystem has been expanded from 1GB to 5GB and is now operating normally at 20% capacity with approximately 4GB of free space available for future growth.
-
-**Summary of changes:**
-
-* Extended logical volume app_lv from 1GB to 5GB using available space in volume group
-* Grew XFS filesystem to utilize the expanded logical volume
-* Verified application can successfully write to the filesystem
-
-The 5GB disk you provisioned is now fully utilized. For future reference, when creating LVM-based filesystems, it's best to allocate space with growth projections in mind to avoid running out of space as applications scale.
-
-The application is running normally and has room to grow. Let me know if you need anything else.
-____
 
 [NOTE]
 ====
