@@ -8,8 +8,8 @@ LV_SIZE=$(lvs --noheadings --units g -o lv_size /dev/app_vg/app_lv | tr -d ' ' |
 LV_SIZE_INT=$(echo "$LV_SIZE" | cut -d. -f1)
 
 if [ "$LV_SIZE_INT" -lt 4 ]; then
-    echo "FAIL: Logical volume has not been extended"
-    echo "HINT: Use 'lvextend -l +100%FREE /dev/app_vg/app_lv' to extend the logical volume"
+    echo "FAIL: Logical volume has not been extended" >> /tmp/progress.log
+    echo "HINT: Use 'lvextend -l +100%FREE /dev/app_vg/app_lv' to extend the logical volume" >> /tmp/progress.log
     exit 1
 fi
 
@@ -17,8 +17,8 @@ fi
 FS_SIZE=$(df -BG /app | tail -1 | awk '{print $2}' | sed 's/G//')
 
 if [ "$FS_SIZE" -lt 4 ]; then
-    echo "FAIL: Filesystem has not been grown to use the extended logical volume"
-    echo "HINT: After extending the LV, you need to grow the filesystem with 'xfs_growfs /app'"
+    echo "FAIL: Filesystem has not been grown to use the extended logical volume" >> /tmp/progress.log
+    echo "HINT: After extending the LV, you need to grow the filesystem with 'xfs_growfs /app'" >> /tmp/progress.log
     exit 1
 fi
 
@@ -26,11 +26,11 @@ fi
 FS_AVAIL=$(df -BG /app | tail -1 | awk '{print $4}' | sed 's/G//')
 
 if [ "$FS_AVAIL" -lt 3 ]; then
-    echo "FAIL: Filesystem doesn't have expected free space after expansion"
-    echo "HINT: Check that both lvextend and xfs_growfs completed successfully"
+    echo "FAIL: Filesystem doesn't have expected free space after expansion" >> /tmp/progress.log
+    echo "HINT: Check that both lvextend and xfs_growfs completed successfully" >> /tmp/progress.log
     exit 1
 fi
 
-echo "PASS: LVM expansion completed successfully"
-echo "Logical volume is ${LV_SIZE}GB and filesystem has ${FS_AVAIL}GB free space"
+echo "PASS: LVM expansion completed successfully" >> /tmp/progress.log
+echo "Logical volume is ${LV_SIZE}GB and filesystem has ${FS_AVAIL}GB free space" >> /tmp/progress.log
 exit 0
