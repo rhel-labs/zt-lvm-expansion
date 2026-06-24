@@ -40,7 +40,7 @@ ____
 You sigh and check your other email. There's a message from Nate, the senior sysadmin.
 
 [NOTE]
-====
+=====
 *From: Nate*
 
 Subject: Welcome aboard!
@@ -64,7 +64,7 @@ Take your time, work methodically, and you'll have this sorted in no time. Scott
 -Nate
 
 P.S. - Welcome to Super-Business. It's never boring around here.
-====
+=====
 
 == Your Mission
 
