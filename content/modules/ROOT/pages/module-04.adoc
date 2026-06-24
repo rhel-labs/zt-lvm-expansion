@@ -1,6 +1,8 @@
 = Resolution: Expanding the Filesystem
 
-== Step 1: Extend the Logical Volume
+.Step 1: Extend the Logical Volume
+[%collapsible]
+====
 
 Now it's time to execute our plan. First, let's extend the logical volume to use all the free space in the volume group.
 
@@ -17,13 +19,13 @@ Logical volume app_vg/app_lv successfully resized.
 ----
 
 [NOTE]
-====
+=====
 **What just happened?**
 
 We extended the logical volume from 1GB to 5GB by using all the free space in the volume group.
 
 The `-l +100%FREE` option means "add 100% of the free extents to this logical volume." This is safer than specifying a size because it automatically uses whatever is actually available.
-====
+=====
 
 Let's verify the logical volume is now 5GB:
 
@@ -34,7 +36,7 @@ sudo lvs app_vg/app_lv
 
 You should see the **LSize** is now approximately 5.00g.
 
-== Important: The Filesystem Still Needs to Grow
+*Important: The Filesystem Still Needs to Grow*
 
 Here's a critical point that catches many people: **extending the logical volume does NOT automatically resize the filesystem!**
 
@@ -48,15 +50,19 @@ df -h /app
 Notice the filesystem is still showing as ~1GB! The filesystem doesn't know about the extra space in the logical volume yet.
 
 [IMPORTANT]
-====
+=====
 **Common Mistake Alert!**
 
 Many administrators extend the logical volume and then wonder why they still don't have more space. The logical volume is like adding more land to your property - but you still need to expand the house (filesystem) to use that new land.
 
 Always remember: After extending an LV, you must also grow the filesystem!
+=====
+
 ====
 
-== Step 2: Grow the Filesystem
+.Step 2: Grow the Filesystem
+[%collapsible]
+====
 
 Now let's grow the XFS filesystem to use the full 5GB available in the logical volume:
 
@@ -82,13 +88,17 @@ data blocks changed from 262144 to 1310720
 ----
 
 [NOTE]
-====
+=====
 The key line is the last one: **"data blocks changed from 262144 to 1310720"**
 
 This shows the filesystem has grown to use the additional space. The exact numbers may vary, but you should see a significant increase.
+=====
 ====
 
-== Step 3: Verify the Expansion
+.Step 3: Verify the Expansion
+[%collapsible]
+====
+
 
 Let's verify that our expansion worked correctly:
 
@@ -105,7 +115,7 @@ Filesystem                  Size  Used Avail Use% Mounted on
 ----
 
 [TIP]
-====
+=====
 **Success!**
 
 Look at that difference:
@@ -114,7 +124,7 @@ Look at that difference:
 * **After**: 5.0GB total, 964MB used, 4.1GB free (20% full)
 
 Same data, same usage - but now we have plenty of room for growth!
-====
+=====
 
 Let's also verify the LVM structure is as expected:
 
@@ -132,7 +142,12 @@ sudo lvs app_vg/app_lv
 
 This should confirm the logical volume is now approximately 5GB.
 
-== Post-Change Documentation
+====
+
+.Post-Change Documentation
+[%collapsible]
+====
+
 
 Let's document the final state to compare with our "before" snapshot:
 
@@ -160,13 +175,18 @@ Review the complete before and after:
 cat /tmp/expansion-log.txt
 ----
 
-== Testing the Application
+====
+
+.Testing the Application
+[%collapsible]
+====
+
 
 At this point you would want to verify that your application is able to write to the disk that you've expanded.  You have have stopped the application, or it may have crashed on its own due to the disk space issue.  What to do at this point would depend on your application, and is outside of the scope of this lab.
 
 
 [NOTE]
-====
+=====
 *From: Nate (Senior Sysadmin)*
 
 Nice work! You handled that methodically and professionally.
@@ -183,6 +203,7 @@ That's exactly how you handle these situations in production. Welcome to the tea
 -Nate
 
 P.S. - Don't worry, Scott will do something like this again in about two weeks. At least you know the procedure now!
+=====
 ====
 
 == Key Takeaways

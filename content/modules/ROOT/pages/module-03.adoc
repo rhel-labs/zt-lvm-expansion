@@ -1,6 +1,10 @@
-= Analysis: Planning the Expansion
+Now that we have an understanding of how our disk is laid out, we can start t plan our changes. 
 
-== Understanding LVM Architecture
+.Analysis: Planning the Expansion
+[%collapsible]
+====
+
+*Understanding LVM Architecture*
 
 Before we make any changes, let's make sure we understand how LVM works and what we're about to do.
 
@@ -19,7 +23,7 @@ Filesystem (XFS) - mounted on /app
 ----
 
 [NOTE]
-====
+=====
 Think of it like a building:
 
 * **Physical Disk** = The land/plot
@@ -29,9 +33,9 @@ Think of it like a building:
 * **Filesystem** = The interior finish and usable space
 
 Right now, we have a building (VG) on a large plot of land, but we've only finished one small room (LV) in it. We have space to expand that room to use more of the building.
-====
+=====
 
-== Verifying Available Resources
+*Verifying Available Resources*
 
 Let's double-check exactly how much free space we have available:
 
@@ -51,7 +55,7 @@ sudo lvs app_vg/app_lv
 
 The **LSize** column shows it's currently 1GB.
 
-== Checking the Filesystem Type
+*Checking the Filesystem Type*
 
 It's important to know what filesystem type we're working with because different filesystems use different resize commands:
 
@@ -63,7 +67,7 @@ df -T /app
 You should see that `/app` is formatted with **xfs**. This is good news because XFS can be grown while mounted (no downtime needed)!
 
 [TIP]
-====
+=====
 **Filesystem Resize Commands:**
 
 * **XFS**: `xfs_growfs /mountpoint` (can be done online while mounted)
@@ -71,9 +75,12 @@ You should see that `/app` is formatted with **xfs**. This is good news because 
 * **ext3**: `resize2fs /dev/vg/lv` (can be done online)
 
 XFS filesystems **cannot be shrunk**, only grown. This is actually fine for most production scenarios where you're adding space, not removing it.
+=====
 ====
 
-== Planning the Expansion
+.Planning the Expansion
+[%collapsible]
+====
 
 Our plan is straightforward:
 
@@ -97,7 +104,7 @@ mount | grep /app
 
 This confirms `/app` is mounted. Since we're using XFS, we can grow it while it's mounted.
 
-== Pre-Change Documentation
+*Pre-Change Documentation*
 
 Before making any changes to production systems, it's always wise to document the current state. Let's create some "before" notes:
 
@@ -125,7 +132,7 @@ cat /tmp/expansion-log.txt
 ----
 
 [IMPORTANT]
-====
+=====
 In production environments, always document the state before making changes. This gives you a baseline to compare against and helps with troubleshooting if something unexpected happens.
 
 In critical systems, you might also want to:
@@ -134,9 +141,9 @@ In critical systems, you might also want to:
 * Take a snapshot (if using LVM snapshots)
 * Notify relevant stakeholders
 * Schedule a maintenance window
-====
+=====
 
-== Risk Assessment
+*Risk Assessment*
 
 Let's assess the risks of our planned change:
 
@@ -159,7 +166,11 @@ Let's assess the risks of our planned change:
 * Follow the procedure step-by-step
 * Verify each step completed successfully before proceeding
 
-== Expansion Strategy
+====
+
+.Expansion Strategy
+[%collapsible]
+====
 
 Based on our analysis, here's our strategy:
 
@@ -172,14 +183,14 @@ sudo xfs_growfs /app
 ----
 
 [NOTE]
-====
+=====
 **Why these commands?**
 
 * `lvextend -l +100%FREE` extends the logical volume using all available free space in the volume group
 * `xfs_growfs /app` grows the XFS filesystem to use all available space in the logical volume (we specify the mount point, not the device)
-====
+=====
 
-== Ready to Proceed
+*Ready to Proceed*
 
 We've completed our analysis and have a clear plan:
 
@@ -189,5 +200,7 @@ We've completed our analysis and have a clear plan:
 ✓ Selected the appropriate commands +
 ✓ Documented the current state +
 ✓ Assessed the risks
+
+====
 
 Now we're ready to execute the expansion. Let's move on to the resolution phase where we'll implement these changes!

@@ -1,6 +1,8 @@
 = Diagnosis: Understanding the Problem
 
-== Initial Assessment
+.Initial Assessment
+[%collapsible]
+====
 
 As any good systems administrator knows, the first step in troubleshooting is to gather information. Let's verify Manager Scott's claim that the disk is full.
 
@@ -17,11 +19,11 @@ Filesystem                  Size  Used Avail Use% Mounted on
 ----
 
 [NOTE]
-====
+=====
 Your actual output may vary, but in the example you can see, the filesystem is indeed nearly full at 96% capacity. Notice that the total size is only about 1GB (1014M), which confirms what Nate mentioned - Scott only created a 1GB filesystem despite having a 5GB disk available.
-====
+=====
 
-== Understanding Filesystem Usage
+*Understanding Filesystem Usage*
 
 Let's see what's taking up all that space.
 
@@ -49,7 +51,7 @@ The `du` command shows actual disk usage by directory or file.
 Both are essential tools for diagnosing disk space issues.
 ====
 
-== Examining the LVM Structure
+*Examining the LVM Structure*
 
 Now let's look at the Logical Volume Manager (LVM) structure. LVM provides flexibility by allowing us to resize volumes without reformatting.
 
@@ -76,11 +78,11 @@ Look for these key fields:
 * **Free PE / Size**: Shows available space (about 4GB)
 
 [IMPORTANT]
-====
+=====
 This is the key finding: The volume group has approximately **4GB of free space** that isn't being used!
 
 Scott created the physical volume and volume group correctly with the full 5GB disk. He just forgot to allocate all of it when creating the logical volume.
-====
+=====
 
 Now let's look at the logical volume:
 
@@ -109,38 +111,11 @@ Filesystem (/app):            1GB (96% full)
 Conclusion: We have 4GB of unused space in the volume group!
 ----
 
-== Nate's Notes
-
-Remember Nate mentioned he left some notes? Let's check them:
-
-[source,bash,role=execute]
-----
-sudo cat /home/nate/lvm-notes.txt
-----
-
-[NOTE]
-====
-*Nate's LVM Expansion Quick Reference*
-
-When you need to expand an LVM-based filesystem, follow these steps in order:
-
-1. **Check available space**: `vgdisplay` to see if your VG has free space
-2. **Extend the logical volume**: `lvextend -l +100%FREE /dev/vg_name/lv_name`
-3. **Grow the filesystem**:
-   - For XFS: `xfs_growfs /mount_point`
-   - For ext4: `resize2fs /dev/vg_name/lv_name`
-
-Remember: You can extend XFS filesystems while they're mounted!
-
-Common mistakes to avoid:
-- Don't forget to grow the filesystem after extending the LV
-- Make sure you have free space in the VG before extending
-- Use the correct filesystem resize command (xfs_growfs vs resize2fs)
-
--Nate
 ====
 
-== Diagnosis Summary
+.Diagnosis Summary
+[%collapsible]
+====
 
 You've now completed the diagnostic phase and confirmed:
 
@@ -148,5 +123,7 @@ You've now completed the diagnostic phase and confirmed:
 2. The underlying volume group (`app_vg`) has approximately 4GB of free space
 3. The physical disk (`/dev/vdb`) is 5GB and fully utilized by the volume group
 4. We can solve this by extending the logical volume and then growing the filesystem
+
+====
 
 Now that we understand the situation, let's move on to the analysis phase where we'll plan our expansion strategy.
