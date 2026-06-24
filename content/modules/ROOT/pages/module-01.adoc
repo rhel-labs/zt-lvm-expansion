@@ -4,8 +4,8 @@
 
 Welcome to your new role as a systems administrator at Super-Business! As you settle in on your first day, you notice an urgent email in your inbox.
 
-[NOTE]
-____
+[Incoming Email]
+=====
 *From: Scott*
 
 Subject: URGENT - Application Server Issue
@@ -18,12 +18,12 @@ The application is now running on `/app` and everything is working great! I made
 
 Let me know if you have any questions about my optimization work.
 
-____
+=====
 
 You check the timestamp - that email was sent two weeks ago. Before you can even think about it, another email arrives.
 
-[NOTE]
-____
+[Incoming Email]
+=====
 *From: Scott*
 
 Subject: RE: URGENT - Application Server Issue - CRITICAL UPDATE
@@ -35,11 +35,11 @@ The application has stopped working! It keeps saying "No space left on device" b
 I need this fixed IMMEDIATELY. Our super-businessey business processes are being impacted!
 
 -Scott
-____
+=====
 
 You sigh and check your other email. There's a message from Nate, the senior sysadmin.
 
-[NOTE]
+[Incoming Email]
 =====
 *From: Nate*
 
