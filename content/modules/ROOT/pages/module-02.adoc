@@ -43,13 +43,13 @@ This shows you the disk usage of each directory under `/app`:
 The `/app/data` directory is using most of the space. This is typical for applications - data grows over time. This is exactly why Nate warned about sizing filesystems with growth in mind!
 
 [TIP]
-====
+=====
 The `df` command shows filesystem-level information (total size, used space, available space).
 
 The `du` command shows actual disk usage by directory or file.
 
 Both are essential tools for diagnosing disk space issues.
-====
+=====
 
 *Examining the LVM Structure*
 
